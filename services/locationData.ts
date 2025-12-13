@@ -155,7 +155,7 @@ export const VIETNAM_LOCATION_DB: Record<string, ProvinceData> = {
   // =================================================================
   "thua thien hue": {
     "hue": {
-      streets: ["le loi", "hung vuong", "nguyen hue", "ba trieu", "tran hung dao", "le duan", "phan dang luu", "huynh thuc khang", "ben nghe", "dong da", "le quy don", "nguyen tri phuong", "to huu", "kiem hue", "dien bien phu", "phan chu trinh", "ly thuong kiet", "hai ba trung", "ngo quyen", "dinh tien hoang", "mai thuc loan"],
+      streets: ["mai thuc loan","le loi", "hung vuong", "nguyen hue", "ba trieu", "tran hung dao", "le duan", "phan dang luu", "huynh thuc khang", "ben nghe", "dong da", "le quy don", "nguyen tri phuong", "to huu", "kiem hue", "dien bien phu", "phan chu trinh", "ly thuong kiet", "hai ba trung", "ngo quyen", "dinh tien hoang", "mai thuc loan"],
       hospitals: ["benh vien trung uong hue", "benh vien quoc te hue", "benh vien dai hoc y duoc hue", "benh vien thanh pho hue", "benh vien mat hue"],
       malls: ["vincom plaza hue", "big c hue", "go! hue", "cho dong ba", "co.op mart hue", "cho an cuu", "cho ben ngu"],
       landmarks: ["dai noi hue", "kinh thanh hue", "chua thien mu", "cau truong tien", "cau phu xuan", "dh y duoc hue", "dh su pham hue", "quoc hoc hue", "lang khai dinh", "lang tu duc", "con hen"],
