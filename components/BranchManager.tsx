@@ -36,11 +36,9 @@ const calculateStats = (history: HolidaySchedule[]) => {
 
 // --- ISOLATED TIMEPICKER (Prevent Re-render loops) ---
 const TimePicker24h = memo(({ value, onChange, disabled }: { value: string, onChange: (val: string) => void, disabled?: boolean }) => {
-  // Tách biệt hoàn toàn state hiển thị và value prop
   const [hStr, setHStr] = useState('00');
   const [mStr, setMStr] = useState('00');
 
-  // Chỉ sync khi value từ cha thay đổi thật sự (load form mới)
   useEffect(() => {
     if (value) {
       const [h, m] = value.split(':');
@@ -58,11 +56,11 @@ const TimePicker24h = memo(({ value, onChange, disabled }: { value: string, onCh
     if (val.length > 2) val = val.slice(0, 2);
     if (!/^\d*$/.test(val)) return;
     
-    setHStr(val); // Cập nhật UI ngay lập tức
+    setHStr(val); 
     
     const num = parseInt(val);
     if (!isNaN(num)) {
-       let safeH = num > 23 ? '23' : val; // Không pad số 0 ngay để user gõ tiếp
+       let safeH = num > 23 ? '23' : val; 
        updateParent(safeH, mStr);
     }
   };
@@ -106,7 +104,7 @@ const TimePicker24h = memo(({ value, onChange, disabled }: { value: string, onCh
   );
 });
 
-// --- ISOLATED FORM COMPONENT (Ngăn chặn việc bị unmount khi parent re-render) ---
+// --- ISOLATED FORM COMPONENT ---
 const BranchFormSection = memo(({ 
   editingId, formData, setFormData, holidayUI, setHolidayUI, 
   handleSave, handleCancelEdit, handleToggleHoliday, currentEditingBranch 
@@ -117,7 +115,6 @@ const BranchFormSection = memo(({
 
   return (
     <div className="h-full flex flex-col bg-white">
-       {/* 1. SCROLLABLE CONTENT */}
        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-5">
           <div className={`relative transition-colors duration-300 ${editingId ? 'bg-amber-50 rounded-xl p-2' : ''}`}>
               <h3 className={`text-lg font-bold mb-4 border-b pb-2 flex items-center gap-2 ${editingId ? 'text-[#D4AF37]' : 'text-[#8B1E1E]'}`}>
@@ -220,7 +217,6 @@ const BranchFormSection = memo(({
           </div>
        </div>
 
-       {/* 2. FIXED FOOTER FOR BUTTONS: Nằm trên thanh điều hướng Mobile */}
        <div className="border-t border-gray-200 p-4 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 pb-20 md:pb-4">
           <div className="flex gap-3">
              <button type="submit" form="branchForm" className={`flex-1 text-white font-bold py-3.5 rounded-lg shadow-md transition-transform active:scale-95 text-sm uppercase flex items-center justify-center gap-2 ${editingId ? 'bg-[#D4AF37]' : 'bg-[#8B1E1E]'}`}>
@@ -315,7 +311,6 @@ export const BranchManager: React.FC<BranchManagerProps> = ({ branches, setBranc
   const [isUrlVisible, setIsUrlVisible] = useState(false);
   const [isCheckingUrl, setIsCheckingUrl] = useState(false);
   
-  // Timer để update status badge, nhưng không ảnh hưởng Form nhờ memo
   const [now, setNow] = useState(new Date());
 
   const [toast, setToast] = useState<{msg: string, type: 'success' | 'error' | 'loading'} | null>(null);
@@ -615,9 +610,18 @@ export const BranchManager: React.FC<BranchManagerProps> = ({ branches, setBranc
       const s = searchTerm.toLowerCase();
       return (b.name||"").toLowerCase().includes(s) || (b.address||"").toLowerCase().includes(s) || (b.manager||"").toLowerCase().includes(s);
     }).sort((a, b) => {
+       // 1. Chi nhánh Đang Hoạt Động (isActive = true) lên trước, Đã ẩn xuống đáy
+       const activeA = a.isActive !== false ? 1 : 0;
+       const activeB = b.isActive !== false ? 1 : 0;
+       if (activeA !== activeB) return activeB - activeA;
+
+       // 2. Chi nhánh có Cấu hình nghỉ (Holiday Enabled) lên đầu
        const hasScheduleA = a.holidaySchedule?.isEnabled ? 1 : 0;
        const hasScheduleB = b.holidaySchedule?.isEnabled ? 1 : 0;
+       
        if (hasScheduleA !== hasScheduleB) return hasScheduleB - hasScheduleA;
+
+       // 3. Cuối cùng sắp xếp theo tên A-Z
        return (a.name || "").localeCompare(b.name || "");
     });
   }, [branches, searchTerm]); 
@@ -649,17 +653,14 @@ export const BranchManager: React.FC<BranchManagerProps> = ({ branches, setBranc
     );
   }
 
-  // --- MAIN RENDER ---
   return (
     <div className="bg-white h-[100dvh] flex flex-col relative overflow-hidden">
-      {/* --- TOAST NOTIFICATION --- */}
       {toast && (
          <div className={`fixed top-4 right-4 z-[100] px-5 py-3 rounded-lg shadow-xl flex items-center gap-3 transition-all transform duration-300 animate-fade-in ${toast.type === 'success' ? 'bg-green-600 text-white' : toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-[#D4AF37] text-white'}`}>
             <span className="font-bold text-sm">{toast.msg}</span>
          </div>
       )}
 
-      {/* HEADER (Sticky on Mobile, Static on Desktop) */}
       <div className={`bg-[#8B1E1E] px-4 py-3 md:px-6 md:py-4 flex justify-between items-center text-white flex-shrink-0 z-30 shadow-md`}>
         <div className="flex items-center gap-4">
            <div className="flex flex-col">
@@ -673,7 +674,6 @@ export const BranchManager: React.FC<BranchManagerProps> = ({ branches, setBranc
               </span>
            </div>
            
-           {/* DESKTOP TABS */}
            <div className="hidden md:flex bg-[#601414] p-1 rounded-lg ml-4">
               <button onClick={() => setActiveTab('list')} className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase transition-all ${(activeTab === 'list' || activeTab === 'form') ? 'bg-white text-[#8B1E1E] shadow' : 'text-white/70 hover:text-white'}`}>Chi Nhánh</button>
               <button onClick={() => setActiveTab('logs')} className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase transition-all ${activeTab === 'logs' ? 'bg-white text-[#8B1E1E] shadow' : 'text-white/70 hover:text-white'}`}>Nhật Ký</button>
@@ -681,7 +681,6 @@ export const BranchManager: React.FC<BranchManagerProps> = ({ branches, setBranc
         </div>
 
         <div className="flex gap-2 items-center">
-          {/* DESKTOP: Config Toggle */}
           {(activeTab === 'list' || activeTab === 'form') && (
             <button onClick={() => setShowConfig(!showConfig)} className={`hidden md:block p-2 rounded-full transition-all border ${showConfig ? 'bg-white text-[#8B1E1E] border-white' : 'bg-white/10 hover:bg-white/20 text-white border-transparent'}`} title="Cấu hình kết nối Sheet">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -719,19 +718,12 @@ export const BranchManager: React.FC<BranchManagerProps> = ({ branches, setBranc
         </div>
       )}
 
-      {/* --- CONTENT AREA --- */}
       <div className="flex-1 overflow-hidden bg-gray-100 relative flex flex-col md:flex-row">
         
-        {/* VIEW: LOGS */}
         {activeTab === 'logs' && <LogsView logs={logs} loading={loadingLogs} />}
 
-        {/* VIEW: BRANCHES & FORM (Split on Desktop, Tabbed on Mobile) */}
         {activeTab !== 'logs' && (
             <>
-                {/* FORM COLUMN:
-                    - Mobile: Show only if activeTab is 'form' (Z-index cao de de len Nav)
-                    - Desktop: Always show (Split view)
-                */}
                 <div 
                   className={`
                      bg-white border-r border-gray-200 shadow-xl z-20 flex flex-col
@@ -752,10 +744,6 @@ export const BranchManager: React.FC<BranchManagerProps> = ({ branches, setBranc
                    />
                 </div>
 
-                {/* LIST COLUMN:
-                    - Mobile: Show only if activeTab is 'list'
-                    - Desktop: Always show (Split view)
-                */}
                 <div className={`
                     flex-col h-full overflow-hidden order-1 md:order-2 bg-gray-50 relative
                     md:flex-1
@@ -811,7 +799,6 @@ export const BranchManager: React.FC<BranchManagerProps> = ({ branches, setBranc
         )}
       </div>
 
-      {/* --- MOBILE BOTTOM NAVIGATION --- */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 flex justify-around pb-safe">
           <button 
              onClick={() => setActiveTab('list')}
